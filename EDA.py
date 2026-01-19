@@ -62,6 +62,33 @@ all_title_tokens = [token for tokens in train_df['title_tokens'] for token in to
 
 print("Unique search tokens:", len(set(all_search_tokens)))
 print("Unique title tokens:", len(set(all_title_tokens)))
+from collections import Counter
+
+title_token_counts = Counter([token for tokens in train_df['title_tokens'] for token in tokens])
+rare_titles = sum(1 for t,c in title_token_counts.items() if c < 5)
+print("Number of rare title words (<5 occurrences):", rare_titles)
+# ======================
+# CHAR VOCAB
+# ======================
+def build_char_vocab(dfs):
+    chars = set()
+    for df in dfs:
+        for col in ["search_term", "product_title"]:
+            for text in df[col].astype(str):
+                chars.update(text.lower())
+    char2idx = {c: i + 1 for i, c in enumerate(sorted(chars))}
+    char2idx["<PAD>"] = 0
+    return char2idx
+
+char2idx = build_char_vocab([train_df])
+print("\nUnique characters (char-level vocab):", len(char2idx) - 1)  # minus PAD
+
+# Count unique characters in search terms and titles separately
+search_chars = set("".join(train_df["search_term"].astype(str).str.lower()))
+title_chars = set("".join(train_df["product_title"].astype(str).str.lower()))
+
+print("Unique characters in search terms:", len(search_chars))
+print("Unique characters in product titles:", len(title_chars))
 
 # ======================
 # Target distribution
