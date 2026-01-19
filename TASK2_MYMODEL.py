@@ -15,9 +15,10 @@ import time
 # ======================
 TRAIN_CSV = "train.csv"
 TEST_LABELS_CSV = "test_labels.csv"  # already merged test + relevance
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 EPOCHS = 20
 LR = 1e-4
+DROPOUT = 0.5
 MAX_SEQ_LEN = 50  # max words / tokens
 EMBED_DIM = 100
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -117,13 +118,15 @@ class WordEncoder(nn.Module):
 class SiameseWordNet(nn.Module):
     def __init__(self, embedding_matrix):
         super().__init__()
-        self.encoder = WordEncoder(embedding_matrix)
+        self.encoder = WordEncoder(embedding_matrix,dropout=DROPOUT)
         self.fc = nn.Linear(256, 1)
 
     def forward(self, s, t):
         es = self.encoder(s)
         et = self.encoder(t)
-        return self.fc(torch.cat([es, et], dim=1)).squeeze(1)
+        x = self.fc(torch.cat([es, et], dim=1))
+        x = torch.sigmoid(x) * 2 + 1  # maps 0->1, 1->3
+        return x.squeeze(1)  # <-- Option 2: ensures output shape is [batch]
 
 model = SiameseWordNet(embedding_matrix).to(DEVICE)
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
