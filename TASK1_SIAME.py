@@ -16,11 +16,12 @@ import matplotlib.pyplot as plt
 # ======================
 TRAIN_CSV = "train.csv"
 TEST_LABELS_CSV = "test_labels.csv"  # already merged test + relevance
-BATCH_SIZE = 64
-EPOCHS = 5
-LR = 1e-3
-MAX_SEARCH_LEN = 50
-MAX_TITLE_LEN = 200
+BATCH_SIZE = 128
+EPOCHS = 12
+LR = 1e-4
+DROPOUT=0.2
+MAX_SEARCH_LEN = 30
+MAX_TITLE_LEN = 50
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # ======================
@@ -43,7 +44,7 @@ def build_char_vocab(dfs):
     return char2idx
 
 char2idx = build_char_vocab([train_df, test_df])
-
+print("total chars:", len(char2idx)-1)
 def encode(text):
     return [char2idx[c] for c in str(text).lower()]
 
@@ -71,24 +72,26 @@ class SearchDataset(Dataset):
 # MODELS
 # ======================
 class CharEncoder(nn.Module):
-    def __init__(self, vocab_size):
+    def __init__(self, vocab_size, embed_dim=32, dropout=0.2):
         super().__init__()
-        self.emb = nn.Embedding(vocab_size, 32, padding_idx=0)
-        self.c1 = nn.Conv1d(32, 64, 3, padding=1)
-        self.c2 = nn.Conv1d(64, 128, 3, padding=1)
+        self.emb = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        self.c1 = nn.Conv1d(embed_dim, 64, kernel_size=3, padding=1)
+        self.c2 = nn.Conv1d(64, 128, kernel_size=3, padding=1)
         self.fc = nn.Linear(128, 128)
+        self.dropout = nn.Dropout(dropout)  # controlled via hyperparameter
 
     def forward(self, x):
-        x = self.emb(x).permute(0, 2, 1)
+        x = self.emb(x).permute(0, 2, 1)  # [batch, embed_dim, seq_len]
         x = F.relu(self.c1(x))
         x = F.relu(self.c2(x))
         x = F.adaptive_max_pool1d(x, 1).squeeze(-1)
-        return self.fc(x)
+        x = self.dropout(self.fc(x))  # apply dropout after FC
+        return x
 
 class SiameseRegression(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
-        self.encoder = CharEncoder(vocab_size)
+        self.encoder = CharEncoder(vocab_size,dropout=DROPOUT)
         self.fc = nn.Linear(256, 1)
 
     def forward(self, s, t):
