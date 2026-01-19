@@ -177,10 +177,11 @@ test_labels = torch.cat(test_labels)
 test_rmse = np.sqrt(mean_squared_error(test_labels, test_preds))
 test_mae = mean_absolute_error(test_labels, test_preds)
 nn_runtime = time.time() - start_time
-
 print(f"\nFINAL TEST RMSE: {test_rmse:.4f} | Test MAE: {test_mae:.4f}")
 print(f"Total Neural Model Runtime (Train + Inference): {nn_runtime:.2f} sec")
 
+torch.save(model.state_dict(), "char_siamese_model_state.pth")
+print("Model weights saved successfully!")
 # ======================
 # PLOT TRAINING CURVES
 # ======================

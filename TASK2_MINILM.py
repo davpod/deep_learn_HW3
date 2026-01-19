@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 # ======================
 TRAIN_CSV = "train.csv"
 TEST_LABELS_CSV = "test_labels.csv"
-BATCH_SIZE = 128
-EPOCHS = 7
+BATCH_SIZE = 32
+EPOCHS = 5
 LR = 1e-3
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
