@@ -16,10 +16,10 @@ import matplotlib.pyplot as plt
 # ======================
 TRAIN_CSV = "train.csv"
 TEST_LABELS_CSV = "test_labels.csv"  # already merged test + relevance
-BATCH_SIZE = 128
-EPOCHS = 12
-LR = 1e-4
-DROPOUT=0.2
+BATCH_SIZE = 512
+EPOCHS = 15
+LR = 1e-3
+DROPOUT=0.4
 MAX_SEARCH_LEN = 30
 MAX_TITLE_LEN = 50
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -128,36 +128,36 @@ class CharBiLSTMEncoder(nn.Module):
         h = self.dropout(self.fc(h))
         return h
 
-# class SiameseRegression(nn.Module):
-#     def __init__(self, vocab_size):
-#         super().__init__()
-#         self.encoder = CharBiLSTMEncoder(
-#             vocab_size,
-#             embed_dim=32,
-#             hidden_dim=64,
-#             dropout=DROPOUT
-#         )
-#         self.fc = nn.Linear(256, 1)
-#
-#     def forward(self, s, t):
-#         es = self.encoder(s)
-#         et = self.encoder(t)
-#         return self.fc(torch.cat([es, et], 1)).squeeze(1)
-
 class SiameseRegression(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
-        self.encoder = CharBiLSTMAttnEncoder(vocab_size)
-        self.fc = nn.Sequential(
-            nn.Linear(512, 128),
-            nn.ReLU(),
-            nn.Linear(128, 1)
+        self.encoder = CharBiLSTMEncoder(
+            vocab_size,
+            embed_dim=32,
+            hidden_dim=64,
+            dropout=DROPOUT
         )
+        self.fc = nn.Linear(256, 1)
 
     def forward(self, s, t):
         es = self.encoder(s)
         et = self.encoder(t)
         return self.fc(torch.cat([es, et], 1)).squeeze(1)
+
+# class SiameseRegression(nn.Module):
+#     def __init__(self, vocab_size):
+#         super().__init__()
+#         self.encoder = CharBiLSTMAttnEncoder(vocab_size)
+#         self.fc = nn.Sequential(
+#             nn.Linear(512, 128),
+#             nn.ReLU(),
+#             nn.Linear(128, 1)
+#         )
+#
+#     def forward(self, s, t):
+#         es = self.encoder(s)
+#         et = self.encoder(t)
+#         return self.fc(torch.cat([es, et], 1)).squeeze(1)
 
 # ======================
 # TRAIN / VALID SPLIT
