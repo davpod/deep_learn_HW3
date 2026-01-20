@@ -180,32 +180,85 @@ print(f"\nFC Head | Test RMSE: {test_rmse:.4f} | Test MAE: {test_mae:.4f} | Runt
 start_time_ridge = time.time()
 ridge = Ridge(alpha=1.0)
 ridge.fit(train_emb.numpy(), train_labels.numpy())
-pred_test_ridge = ridge.predict(test_emb.numpy())
-ridge_rmse = np.sqrt(mean_squared_error(test_labels.numpy(), pred_test_ridge))
-ridge_mae = mean_absolute_error(test_labels.numpy(), pred_test_ridge)
-ridge_runtime = time.time() - start_time_ridge
-print(f"\nRidge | Test RMSE: {ridge_rmse:.4f} | Test MAE: {ridge_mae:.4f} | Runtime: {ridge_runtime:.2f}s")
 
+# Train metrics
+train_preds_ridge = ridge.predict(train_emb.numpy())
+train_rmse_ridge = np.sqrt(mean_squared_error(train_labels.numpy(), train_preds_ridge))
+train_mae_ridge = mean_absolute_error(train_labels.numpy(), train_preds_ridge)
+
+# Validation metrics
+val_preds_ridge = ridge.predict(val_emb.numpy())
+val_rmse_ridge = np.sqrt(mean_squared_error(val_labels.numpy(), val_preds_ridge))
+val_mae_ridge = mean_absolute_error(val_labels.numpy(), val_preds_ridge)
+
+# Test metrics
+test_preds_ridge = ridge.predict(test_emb.numpy())
+test_rmse_ridge = np.sqrt(mean_squared_error(test_labels.numpy(), test_preds_ridge))
+test_mae_ridge = mean_absolute_error(test_labels.numpy(), test_preds_ridge)
+
+ridge_runtime = time.time() - start_time_ridge
+print(f"\nRidge Runtime: {ridge_runtime:.2f}s")
+print(f"Ridge Train RMSE: {train_rmse_ridge:.4f} | MAE: {train_mae_ridge:.4f}")
+print(f"Ridge Val   RMSE: {val_rmse_ridge:.4f} | MAE: {val_mae_ridge:.4f}")
+print(f"Ridge Test  RMSE: {test_rmse_ridge:.4f} | MAE: {test_mae_ridge:.4f}")
+
+# ======================
+# Random Forest
+# ======================
 start_time_rf = time.time()
 rf = RandomForestRegressor(
-    n_estimators=200,  # number of trees
-    max_depth=10,      # limit tree depth to prevent overfitting
+    n_estimators=200,
+    max_depth=10,
     random_state=42,
     n_jobs=-1
 )
 rf.fit(train_emb.numpy(), train_labels.numpy())
-pred_rf = rf.predict(test_emb.numpy())
-rf_rmse = np.sqrt(mean_squared_error(test_labels.numpy(), pred_rf))
-rf_mae = mean_absolute_error(test_labels.numpy(), pred_rf)
-rf_runtime = time.time() - start_time_rf
-print(f"Random Forest Test RMSE: {rf_rmse:.4f} | MAE: {rf_mae:.4f} | Runtime: {rf_runtime:.2f}s")
 
-# --- Plain Linear Regression ---
+# Train metrics
+train_preds_rf = rf.predict(train_emb.numpy())
+train_rmse_rf = np.sqrt(mean_squared_error(train_labels.numpy(), train_preds_rf))
+train_mae_rf = mean_absolute_error(train_labels.numpy(), train_preds_rf)
+
+# Validation metrics
+val_preds_rf = rf.predict(val_emb.numpy())
+val_rmse_rf = np.sqrt(mean_squared_error(val_labels.numpy(), val_preds_rf))
+val_mae_rf = mean_absolute_error(val_labels.numpy(), val_preds_rf)
+
+# Test metrics
+test_preds_rf = rf.predict(test_emb.numpy())
+test_rmse_rf = np.sqrt(mean_squared_error(test_labels.numpy(), test_preds_rf))
+test_mae_rf = mean_absolute_error(test_labels.numpy(), test_preds_rf)
+
+rf_runtime = time.time() - start_time_rf
+print(f"\nRandom Forest Runtime: {rf_runtime:.2f}s")
+print(f"RF Train RMSE: {train_rmse_rf:.4f} | MAE: {train_mae_rf:.4f}")
+print(f"RF Val   RMSE: {val_rmse_rf:.4f} | MAE: {val_mae_rf:.4f}")
+print(f"RF Test  RMSE: {test_rmse_rf:.4f} | MAE: {test_mae_rf:.4f}")
+
+# ======================
+# Linear Regression
+# ======================
 start_time_lr = time.time()
 lr = LinearRegression()
 lr.fit(train_emb.numpy(), train_labels.numpy())
-pred_lr = lr.predict(test_emb.numpy())
-lr_rmse = np.sqrt(mean_squared_error(test_labels.numpy(), pred_lr))
-lr_mae = mean_absolute_error(test_labels.numpy(), pred_lr)
+
+# Train metrics
+train_preds_lr = lr.predict(train_emb.numpy())
+train_rmse_lr = np.sqrt(mean_squared_error(train_labels.numpy(), train_preds_lr))
+train_mae_lr = mean_absolute_error(train_labels.numpy(), train_preds_lr)
+
+# Validation metrics
+val_preds_lr = lr.predict(val_emb.numpy())
+val_rmse_lr = np.sqrt(mean_squared_error(val_labels.numpy(), val_preds_lr))
+val_mae_lr = mean_absolute_error(val_labels.numpy(), val_preds_lr)
+
+# Test metrics
+test_preds_lr = lr.predict(test_emb.numpy())
+test_rmse_lr = np.sqrt(mean_squared_error(test_labels.numpy(), test_preds_lr))
+test_mae_lr = mean_absolute_error(test_labels.numpy(), test_preds_lr)
+
 lr_runtime = time.time() - start_time_lr
-print(f"Linear Regression Test RMSE: {lr_rmse:.4f} | MAE: {lr_mae:.4f} | Runtime: {lr_runtime:.2f}s")
+print(f"\nLinear Regression Runtime: {lr_runtime:.2f}s")
+print(f"LR Train RMSE: {train_rmse_lr:.4f} | MAE: {train_mae_lr:.4f}")
+print(f"LR Val   RMSE: {val_rmse_lr:.4f} | MAE: {val_mae_lr:.4f}")
+print(f"LR Test  RMSE: {test_rmse_lr:.4f} | MAE: {test_mae_lr:.4f}")

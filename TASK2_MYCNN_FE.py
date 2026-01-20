@@ -180,11 +180,31 @@ for epoch in range(EPOCHS_FC):
 # ======================
 # 2️⃣ Option: Classical ML (Ridge)
 # ======================
+# ======================
+# 2️⃣ Option: Classical ML (Ridge)
+# ======================
+start_time_ridge = time.time()
 ridge = Ridge(alpha=1.0)
 ridge.fit(train_emb.numpy(), train_labels.numpy())
-pred_test = ridge.predict(test_emb.numpy())
-test_rmse_ridge = np.sqrt(mean_squared_error(test_labels.numpy(), pred_test))
-test_mae_ridge = mean_absolute_error(test_labels.numpy(), pred_test)
-print(f"\nRidge Test RMSE: {test_rmse_ridge:.4f} | MAE: {test_mae_ridge:.4f}")
-end_time = time.time()
-print(f"\nTotal Time: {end_time - start_time:.2f} sec")
+
+# --- Training metrics ---
+train_preds_ridge = ridge.predict(train_emb.numpy())
+train_rmse_ridge = np.sqrt(mean_squared_error(train_labels.numpy(), train_preds_ridge))
+train_mae_ridge = mean_absolute_error(train_labels.numpy(), train_preds_ridge)
+
+# --- Validation metrics ---
+val_preds_ridge = ridge.predict(val_emb.numpy())
+val_rmse_ridge = np.sqrt(mean_squared_error(val_labels.numpy(), val_preds_ridge))
+val_mae_ridge = mean_absolute_error(val_labels.numpy(), val_preds_ridge)
+
+# --- Test metrics ---
+test_preds_ridge = ridge.predict(test_emb.numpy())
+test_rmse_ridge = np.sqrt(mean_squared_error(test_labels.numpy(), test_preds_ridge))
+test_mae_ridge = mean_absolute_error(test_labels.numpy(), test_preds_ridge)
+
+ridge_runtime = time.time() - start_time_ridge
+
+print(f"\nRidge Train RMSE: {train_rmse_ridge:.4f} | MAE: {train_mae_ridge:.4f}")
+print(f"Ridge Val RMSE:   {val_rmse_ridge:.4f} | MAE: {val_mae_ridge:.4f}")
+print(f"Ridge Test RMSE:  {test_rmse_ridge:.4f} | MAE: {test_mae_ridge:.4f}")
+print(f"Ridge Runtime: {ridge_runtime:.2f} sec")

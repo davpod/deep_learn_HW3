@@ -41,6 +41,12 @@ X_val = vectorizer.transform(X_val_text)
 baseline = Ridge(alpha=1.0)
 baseline.fit(X_tr, y_tr)
 
+# --- Training metrics ---
+train_preds_base = baseline.predict(X_tr)
+train_rmse_base = np.sqrt(mean_squared_error(y_tr, train_preds_base))
+train_mae_base = mean_absolute_error(y_tr, train_preds_base)
+print(f"Baseline Train RMSE: {train_rmse_base:.4f} | MAE: {train_mae_base:.4f}")
+
 # ======================
 # VALIDATION METRICS
 # ======================
