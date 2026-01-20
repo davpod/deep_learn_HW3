@@ -71,6 +71,43 @@ class SearchDataset(Dataset):
 # ======================
 # MODELS
 # ======================
+
+class SelfAttention(nn.Module):
+    def __init__(self, hidden_dim):
+        super().__init__()
+        self.attn = nn.Linear(hidden_dim * 2, 1)
+
+    def forward(self, x):
+        # x: [B, L, 2H]
+        scores = self.attn(x).squeeze(-1)       # [B, L]
+        weights = torch.softmax(scores, dim=1) # [B, L]
+        return (x * weights.unsqueeze(-1)).sum(dim=1)
+
+class CharBiLSTMAttnEncoder(nn.Module):
+    def __init__(self, vocab_size, embed_dim=64, hidden_dim=128, dropout=0.3):
+        super().__init__()
+        self.emb = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+
+        self.lstm = nn.LSTM(
+            embed_dim,
+            hidden_dim,
+            num_layers=2,
+            bidirectional=True,
+            batch_first=True,
+            dropout=dropout
+        )
+
+        self.attn = SelfAttention(hidden_dim)
+        self.fc = nn.Linear(hidden_dim * 2, 256)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x):
+        x = self.emb(x)            # [B, L, E]
+        x, _ = self.lstm(x)        # [B, L, 2H]
+        x = self.attn(x)           # [B, 2H]
+        x = self.dropout(self.fc(x))
+        return x
+
 class CharBiLSTMEncoder(nn.Module):
     def __init__(self, vocab_size, embed_dim=32, hidden_dim=64, dropout=0.2):
         super().__init__()
@@ -91,22 +128,36 @@ class CharBiLSTMEncoder(nn.Module):
         h = self.dropout(self.fc(h))
         return h
 
+# class SiameseRegression(nn.Module):
+#     def __init__(self, vocab_size):
+#         super().__init__()
+#         self.encoder = CharBiLSTMEncoder(
+#             vocab_size,
+#             embed_dim=32,
+#             hidden_dim=64,
+#             dropout=DROPOUT
+#         )
+#         self.fc = nn.Linear(256, 1)
+#
+#     def forward(self, s, t):
+#         es = self.encoder(s)
+#         et = self.encoder(t)
+#         return self.fc(torch.cat([es, et], 1)).squeeze(1)
+
 class SiameseRegression(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
-        self.encoder = CharBiLSTMEncoder(
-            vocab_size,
-            embed_dim=32,
-            hidden_dim=64,
-            dropout=DROPOUT
+        self.encoder = CharBiLSTMAttnEncoder(vocab_size)
+        self.fc = nn.Sequential(
+            nn.Linear(512, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1)
         )
-        self.fc = nn.Linear(256, 1)
 
     def forward(self, s, t):
         es = self.encoder(s)
         et = self.encoder(t)
         return self.fc(torch.cat([es, et], 1)).squeeze(1)
-
 
 # ======================
 # TRAIN / VALID SPLIT
